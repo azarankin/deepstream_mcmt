@@ -1,0 +1,25 @@
+ Terminator
+ Ctrl + Shift O
+ Ctrl + Shift E
+ 
+ 	1-
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+registry refresh
+export LD_LIBRARY_PATH=/opt/nvidia/deepstream/deepstream/lib:/opt/nvidia/deepstream/deepstream-7.1/lib:$LD_LIBRARY_PATH
+export GST_DEBUG="nvmsgbroker:5,nvmsgconv:5"
+gxf_server --host 0.0.0.0 --port 50051
+ 
+ 	2-
+ composer
+ 	# /opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+ 	# /home/arthur/deepstream_mcmt/graph/msgconv_config.txt
+ 	open: /home/arthur/deepstream_mcmt/graph/deepstream-mcmt.yaml
+ 	config file: /home/arthur/deepstream_mcmt/graph/common/target_x86_64.yaml
+ 	3-
+ mosquitto_sub -h 127.0.0.1 -p 1883 -t test-topic -v
+ 
+ 	4-
+ mosquitto_pub -h 127.0.0.1 -p 1883 -t test-topic -m '{"ping":1}'
+ clear
+ 

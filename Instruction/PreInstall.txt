@@ -1,0 +1,49 @@
+	envirunment
+OS: Ubuntu 22.04 (x86_64)
+CUDA: 12.6
+cuDNN: 9.3.0
+TensorRT: 10.3.0
+DeepStream: 7.1
+Graph Composer Runtime: 4.1.0
+MQTT Broker: Mosquitto 2.0.11
+
+	check all versions (deepstream, tensorrt, cuda)
+deepstream-app --version-all
+	brocker check
+ls /opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+ls /opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+
+	mqtt brocker install
+sudo apt install mosquitto mosquitto-clients
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+
+	brocker possible lib:
+/opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+/opt/nvidia/deepstream/deepstream/lib/libnvds_kafka_proto.so
+
+	configurations (based on test4):
+message_converter_broker properties:
+msg-broker-proto-lib: /opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+
+msg-broker-conn-str: 127.0.0.1;1883;test-topic
+msg-conv-config: /home/arthur/deepstream_mcmt/graph/msgconv_config.txt
+topic: test-topic
+new-api: ✔
+
+
+	running
+export LD_LIBRARY_PATH=/opt/nvidia/deepstream/deepstream/lib:/opt/nvidia/deepstream/deepstream-7.1/lib:$LD_LIBRARY_PATH
+#disable ip v6
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+registry refresh
+export GST_DEBUG="nvmsgbroker:5,nvmsgconv:5"
+gxf_server --host 0.0.0.0 --port 50051
+
+	brocker
+mosquitto_sub -h 127.0.0.1 -p 1883 -t test-topic -v
+	ping test
+mosquitto_pub -h 127.0.0.1 -p 1883 -t test-topic -m '{"ping":1}'
+
+

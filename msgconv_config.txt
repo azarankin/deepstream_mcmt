@@ -1,0 +1,5 @@
+[property]
+msg-broker-proto-lib=/opt/nvidia/deepstream/deepstream/lib/libnvds_mqtt_proto.so
+msg-broker-conn-str=localhost;1883
+topic=ds/mqtt
+

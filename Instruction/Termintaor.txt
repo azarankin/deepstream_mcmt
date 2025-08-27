@@ -1,0 +1,17 @@
+sudo apt update
+sudo apt install terminator -y
+
+terminator
+
+
+	split horizontal
+Ctrl+Shift+O
+	split vertical
+Ctrl+Shift+E
+	move between panels
+Ctrl+Tab
+Alt+(Arrow keys)
+	new tab
+Ctrl+Shift+T
+	close panel
+Ctrl+Shift+W
