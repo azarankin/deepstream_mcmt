@@ -5,7 +5,7 @@ import time
 
 WIDTH, HEIGHT = 1280, 720
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-TTL_SEC = 1.0  # משך חיים של כל bbox
+TTL_SEC = 10.0  # משך חיים של כל bbox
 
 def id_to_color(seed_str: str):
     """ממיר מחרוזת לצבע קבוע"""
@@ -14,11 +14,11 @@ def id_to_color(seed_str: str):
 
 class TrackInstance:
     """הופעה בודדת של אובייקט"""
-    def __init__(self, bbox, sensor, conf):
+    def __init__(self, bbox, sensor, conf, ts_seen: float):
         self.bbox = bbox
         self.sensor = sensor
         self.conf = conf
-        self.timestamp = time.time()
+        self.timestamp = ts_seen  # float שנועד ל־TTL
 
     def is_alive(self, now_ts: float) -> bool:
         return (now_ts - self.timestamp) <= TTL_SEC
@@ -26,9 +26,12 @@ class TrackInstance:
 class TrackerScene:
     def __init__(self):
         self.instances = []  # רשימת הופעות פעילות
+        self.last_timestamp_str = None  # מחרוזת ISO מה־MQTT
 
-    def update_from_objs(self, obj_list, now_ts=None):
-        now = now_ts if now_ts is not None else time.time()
+    def update_from_objs(self, obj_list, ts_str=None):
+        now = time.time()
+        if ts_str:
+            self.last_timestamp_str = ts_str
         print(f"[DEBUG] Received {len(obj_list)} object(s) at {now:.2f}")
         for o in obj_list:
             bbox = o.get("bbox")
@@ -37,7 +40,7 @@ class TrackerScene:
                 continue
             sensor = o.get("sensor", "?")
             conf = o.get("conf", 0.0)
-            inst = TrackInstance(bbox, sensor, conf)
+            inst = TrackInstance(bbox, sensor, conf, now)
             self.instances.append(inst)
 
         # ניקוי אובייקטים ישנים
@@ -70,5 +73,8 @@ class TrackerScene:
                 drawn += 1
             except Exception as e:
                 print(f"[DRAW ERROR] {e}")
+        if self.last_timestamp_str:
+            cv2.putText(img, f"Timestamp: {self.last_timestamp_str}", (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
         print(f"[DRAW] Frame with {drawn} object(s) at {now:.2f}")
         return img

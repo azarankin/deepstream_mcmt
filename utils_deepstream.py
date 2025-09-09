@@ -61,7 +61,7 @@ def parse_ds_payload(payload: bytes) -> List[Dict[str, Any]]:
                     "sensor": sensor,
                     "track_id": str(tid),
                     "bbox": [x1, y1, x2, y2],
-                    "last_seen": ts,
+                    "last_seen": str(ts) if ts is not None else None,
                     "cls": cls,
                     "conf": conf,
                 })
