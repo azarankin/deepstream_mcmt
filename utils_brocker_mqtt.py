@@ -1,13 +1,13 @@
 import json
 import paho.mqtt.client as mqtt
 from config import BrokerConfig
-from utils_deepstream import parse_ds_payload, utc_iso
-from typing import Iterable, Union, List, Dict, Any
+from typing import Iterable, Union, Iterable, Callable, Optional 
+from datetime import datetime, timezone
 
 class MqttSubscriber:
     """Managed MQTT Subscriber, built from BrokerConfig."""
 
-    def __init__(self, cfg: BrokerConfig) -> None:
+    def __init__(self, cfg: BrokerConfig, on_message: Optional[Callable[["MqttSubscriber", mqtt.Client, object, mqtt.MQTTMessage], None]] = None) -> None:
         if not cfg.host:
             raise ValueError("host is required")
         if not cfg.port:
@@ -24,7 +24,10 @@ class MqttSubscriber:
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
-        self.client.on_message = self._on_message
+        if on_message:
+            self.client.on_message = on_message
+        else:
+            self.client.on_message = self._on_message
 
         if cfg.username:
             self.client.username_pw_set(cfg.username, cfg.password)
@@ -41,8 +44,15 @@ class MqttSubscriber:
         print(f"[MQTT] Connecting to {self.cfg.host}:{self.cfg.port} … (topics={self.topics})")
         try:
             self.client.loop_forever(retry_first_connection=True)
+        except KeyboardInterrupt:
+            print("\n[MQTT] Interrupted by user.")
+        except Exception as e:
+            print(f"[MQTT] Error during loop_forever: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
         finally:
             self._running = False
+            print("[MQTT] Client stopped.")
 
     def stop(self) -> None:
         try:
@@ -82,29 +92,6 @@ class MqttSubscriber:
             print(f"[MQTT] Unexpected disconnect (rc={rc}). Reconnecting…")
 
     def _on_message(self, client, userdata, msg):
-        objs = parse_ds_payload(msg.payload)
-        if objs:
-            for o in objs:
-                x1, y1, x2, y2 = o["bbox"]
-                cls = o.get("cls")
-                conf = o.get("conf")
-                parts = [
-                    o["last_seen"],
-                    msg.topic,
-                    o.get("sensor", ""),
-                    f"id={o['track_id']}",
-                    f"bbox=[{self._fmt_num(x1)},{self._fmt_num(y1)},{self._fmt_num(x2)},{self._fmt_num(y2)}]",
-                ]
-                if cls:
-                    parts.append(f"cls={cls}")
-                if conf is not None:
-                    parts.append(f"conf={self._fmt_num(conf)}")
-                line = " | ".join(p for p in parts if p)
-                print(line)
-                if self.cfg.save_path:
-                    self._append_to_file(self.cfg.save_path, msg.topic, line)
-            return
-
         # not DeepStream – print raw/prettified
         text = self._pretty_or_raw(msg.payload)
         print(f"\n{msg.topic}:\n{text}")
@@ -128,7 +115,7 @@ class MqttSubscriber:
         
 
     def _append_to_file(self, path: str, topic: str, text: str):
-        ts = utc_iso()
+        ts = self.utc_iso()
         with open(path, "a", encoding="utf-8") as f:
             f.write(f"[{ts}] {topic} {text}\n")
 
@@ -138,16 +125,6 @@ class MqttSubscriber:
         return list(x)
 
 
-    def _fmt_num(self, v):
-        """הדפסה נעימה: מספרים שלמים בלי נקודה, אחרים עם 3 ספרות אחרי נקודה"""
-        try:
-            f = float(v)
-            if abs(f - round(f)) < 1e-9:
-                return str(int(round(f)))
-            return f"{f:.3f}"
-        except Exception:
-            return str(v)
-
     def _rc_value(self, rc):
         """Return numeric reason code if possible, else string."""
         if hasattr(rc, "value"):   # paho v5 ReasonCode
@@ -156,3 +133,6 @@ class MqttSubscriber:
             return int(rc)
         except Exception:
             return rc
+        
+    def utc_iso(self):
+        return datetime.now(timezone.utc).isoformat(timespec="milliseconds")

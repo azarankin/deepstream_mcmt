@@ -9,7 +9,15 @@ from datetime import datetime, timezone
 def utc_iso():
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
-
+def fmt_num(v):
+    """הדפסה נעימה: מספרים שלמים בלי נקודה, אחרים עם 3 ספרות אחרי נקודה"""
+    try:
+        f = float(v)
+        if abs(f - round(f)) < 1e-9:
+            return str(int(round(f)))
+        return f"{f:.3f}"
+    except Exception:
+        return str(v)
 
 # ---------- DeepStream parsing ----------
 
