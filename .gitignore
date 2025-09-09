@@ -1,5 +1,6 @@
 __pycache__/
 videos/
 *.pyc
+*.engine
 calibration/map.png
 calibration/map-bigger.png

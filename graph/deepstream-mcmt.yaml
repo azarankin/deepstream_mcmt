@@ -11,9 +11,6 @@ dependencies:
 - extension: NvDsInferenceExt
   uuid: 0b02963e-c24e-4c13-ace0-c4cdf36c7c71
   version: 1.6.0
-- extension: NvDsSampleModelsExt
-  uuid: 909dc1ea-c654-44c1-97a3-0b8fec12141a
-  version: 1.7.0
 - extension: NvDsVisualizationExt
   uuid: 25903cd4-fc5c-4139-987b-47bb27e8b424
   version: 1.6.0
@@ -60,9 +57,7 @@ components:
 - name: object_detector
   parameters:
     batch-size: 4
-    filter-out-class-ids: 0;1;3
-    infer-model-config: resnet18_4_class_detector
-    infer-on-class-ids: '2'
+    config-file-path: /home/arthur/deepstream_mcmt/models/yolo11_4060ti/config_infer_primary_yolo11_for1280x736.txt
     unique-id: 1
     video-in: video_input
     video-out: video_output
@@ -71,12 +66,10 @@ components:
   type: nvidia::deepstream::NvDsStaticInput
 - name: video_output
   type: nvidia::deepstream::NvDsStaticOutput
-- name: resnet18_4_class_detector
-  type: nvidia::deepstream::NvDsResnet18_4ClassDetectorModel
 name: object_detector
 ui_property:
   position:
-    x: 370.43316650390625
+    x: 369.5998229980469
     y: 5.645928382873535
   state: 0
 ---
@@ -124,7 +117,7 @@ name: tee_1
 ui_property:
   position:
     x: 1394.1026611328125
-    y: -3.2320022583007812
+    y: -2.241070508956909
   state: 0
 ---
 components:
@@ -151,7 +144,7 @@ name: video_renderer
 ui_property:
   position:
     x: 1667.44921875
-    y: -89.87783813476562
+    y: -88.88690948486328
   state: 0
 ---
 components:
@@ -247,8 +240,8 @@ components:
 name: sample_probe_message_meta_creation
 ui_property:
   position:
-    x: 935.2581787109375
-    y: 141.179443359375
+    x: 910.4851684570312
+    y: 193.69882202148438
   state: 0
 ---
 components:
@@ -269,7 +262,7 @@ components:
 name: Multi Source Input1
 ui_property:
   position:
-    x: -218.33261108398438
+    x: -217.3416748046875
     y: -29.50027084350586
 ---
 components:
@@ -283,7 +276,7 @@ name: node1
 components:
 - name: Object Tracker32
   parameters:
-    ll-config-file: /home/arthur/deepstream_mcmt/graph//config_tracker_NvDCF_perf.yml
+    ll-config-file: /home/arthur/deepstream_mcmt/graph/config_tracker_NvDCF_perf.yml
     ll-lib-file: /opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so
     tracker-height: 704
     tracker-width: 1280
@@ -316,8 +309,8 @@ components:
 name: Video Tiler1
 ui_property:
   position:
-    x: 900.455810546875
-    y: -104.77136993408203
+    x: 887.5735473632812
+    y: -107.74415588378906
 ---
 components:
 - name: Deepstream Data Connection38
@@ -350,3 +343,24 @@ components:
     probe-connector: sample_probe_message_meta_creation/probe_connector
   type: nvidia::deepstream::NvDsProbe
 name: node2
+---
+components:
+- name: Probe Monitor5
+  parameters:
+    io: onscreen_display/video_output
+    probe-connector: DeepStream Message Meta Creator/Probe Connector1
+  type: nvidia::deepstream::NvDsProbe
+name: node1
+---
+components:
+- name: DeepStream Message Meta Creator0
+  parameters:
+    probe-connector: Probe Connector1
+  type: nvidia::deepstream::NvDsSampleProbeMessageMetaCreation
+- name: Probe Connector1
+  type: nvidia::deepstream::NvDsProbeConnector
+name: DeepStream Message Meta Creator
+ui_property:
+  position:
+    x: 1423.9925537109375
+    y: 171.48898315429688

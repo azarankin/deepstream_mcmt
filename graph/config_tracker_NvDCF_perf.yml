@@ -17,6 +17,9 @@ BaseConfig:
 
 TargetManagement:
   enableBboxUnClipping: 1    # In case the bbox is likely to be clipped by image border, unclip bbox
+  
+  enableNvDCF: 1
+  
   preserveStreamUpdateOrder: 0    # When assigning new target ids, preserve input streams' order to keep target ids in a deterministic order over multuple runs
   maxTargetsPerStream: 50    # Max number of targets to track per stream. Recommended to set >10. Note: this value should account for the targets being tracked in shadow mode as well. Max value depends on the GPU memory capacity
 
@@ -25,12 +28,18 @@ TargetManagement:
   # [Creation & Termination Policy]
   minIouDiff4NewTarget: 0.70    # If the IOU between the newly detected object and any of the existing targets is higher than this threshold, this newly detected object will be discarded.
   # אל תוריד מהר ל-shadow: הורד מעט את הסף כדי להשאיר Track גם כשחלשה דיטקציה רגעית
-  minTrackerConfidence: 0.25    # If the confidence of an object tracker is lower than this on the fly, then it will be tracked in shadow mode. Valid Range: [0.0, 1.0]
+  minTrackerConfidence: 0.3    # If the confidence of an object tracker is lower than this on the fly, then it will be tracked in shadow mode. Valid Range: [0.0, 1.0]
   probationAge: 2    # If the target's age exceeds this, the target will be considered to be valid.
   # תן ל-Track “להישרד” עוד זמן כשהאובייקט נעלם זמנית (הסתרה/Blur)
-  maxShadowTrackingAge: 75    # Max length of shadow tracking. If the shadowTrackingAge exceeds this limit, the tracker will be terminated.
+  maxShadowTrackingAge: 60    # Max length of shadow tracking. If the shadowTrackingAge exceeds this limit, the tracker will be terminated.
   # אל תסיים מהר מדי ב-TENTATIVE
+  maxShadowTrackingAgeNotVisible: 120
   earlyTerminationAge: 2    # If the shadowTrackingAge reaches this threshold while in TENTATIVE period, the target will be terminated prematurely.
+
+#מרחק השוואה
+minMatchingScore4NewObject: 0.5   # הורד מ-0.7
+minMatchingScore4Track: 0.3       # הורד מ-0.5
+
 
 TrajectoryManagement:
   # מזהה 64bit – לא חובה, אבל נוח לריצה ארוכה/מספר סטרימים
