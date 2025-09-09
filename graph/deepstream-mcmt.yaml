@@ -40,10 +40,10 @@ components:
 - name: streammux
   parameters:
     batch-size: 4
-    height: 1080
+    height: 720
     video-in-%u: video_input
     video-out: video_output
-    width: 1920
+    width: 1280
   type: nvidia::deepstream::NvDsStreamMux
 - name: video_input
   type: nvidia::deepstream::NvDsOnRequestInput
